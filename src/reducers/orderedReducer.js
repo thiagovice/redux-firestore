@@ -1,7 +1,11 @@
 import { first, size, get, unionBy } from 'lodash';
 import { merge as mergeObjects } from 'lodash/fp';
 import { actionTypes } from '../constants';
-import { updateItemInArray, preserveValuesFromState } from '../utils/reducers';
+import {
+  updateItemInArray,
+  preserveValuesFromState,
+  storeKeyFromMeta,
+} from '../utils/reducers';
 
 const { GET_SUCCESS, LISTENER_RESPONSE, CLEAR_DATA } = actionTypes;
 
@@ -20,7 +24,7 @@ const { GET_SUCCESS, LISTENER_RESPONSE, CLEAR_DATA } = actionTypes;
 function updateDocInOrdered(state, action) {
   const itemToAdd = first(action.payload.ordered);
   const subcollection = first(action.meta.subcollections);
-  const storeUnderKey = action.meta.storeAs || action.meta.collection;
+  const storeUnderKey = storeKeyFromMeta(action.meta);
   return {
     ...state,
     [storeUnderKey]: updateItemInArray(
@@ -66,7 +70,7 @@ export default function orderedReducer(state = {}, action) {
         return state;
       }
       const { meta, merge = { doc: true, collection: true } } = action;
-      const parentPath = meta.storeAs || meta.collection;
+      const parentPath = storeKeyFromMeta(meta);
       // Handle doc update (update item in array instead of whole array)
       if (meta.doc && merge.doc && size(get(state, parentPath))) {
         // Merge if data already exists

@@ -58,6 +58,39 @@ export function combineReducers(reducers) {
 }
 
 /**
+ * Get store key path from meta data.
+ * @param  {Object} meta - Action meta data object
+ * @param  {String} meta.collection - Name of Collection for which the action
+ * is to be handled.
+ * @param  {String} meta.doc - Name of Document for which the action is to be
+ * handled.
+ * @param  {Array} meta.subcollections - Subcollections of data
+ * @param  {String} meta.storeAs - Another key within redux store that the
+ * action associates with (used for storing data under a path different
+ * from its collection/document)
+ * @return {String} String path to be used within reducer
+ * @private
+ */
+export function storeKeyFromMeta(meta) {
+  if (!meta) {
+    throw new Error('Action meta is required to build path for reducers.');
+  }
+  const { collection, subcollections, storeAs } = meta;
+  if (storeAs) {
+    return storeAs;
+  }
+  if (!collection) {
+    throw new Error('Collection is required to construct reducer path.');
+  }
+  const basePath = collection;
+  if (!subcollections) {
+    return basePath;
+  }
+  const mappedCollections = subcollections.map(storeKeyFromMeta);
+  return basePath.concat(`_${mappedCollections.join('_')}`);
+}
+
+/**
  * Get path from meta data. Path is used with lodash's setWith to set deep
  * data within reducers.
  * @param  {Object} meta - Action meta data object
